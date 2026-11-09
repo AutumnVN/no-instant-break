@@ -20,7 +20,14 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew build
+        run: |
+          for i in 1 2 3; do
+            if ./gradlew --version; then
+              break
+            fi
+            sleep 15
+          done
+          ./gradlew build
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
