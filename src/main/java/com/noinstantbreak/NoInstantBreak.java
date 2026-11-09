@@ -1,6 +1,5 @@
 package com.noinstantbreak;
 
-import org.lwjgl.glfw.GLFW;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
@@ -8,15 +7,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.settings.KeyConflictContext;
-import net.neoforged.neoforge.client.settings.KeyModifier;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.settings.KeyConflictContext;
+import net.minecraftforge.client.settings.KeyModifier;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.lwjgl.glfw.GLFW;
 
 @Mod(NoInstantBreak.MODID)
 public class NoInstantBreak {
@@ -28,9 +28,9 @@ public class NoInstantBreak {
     private long ticks;
     private long cooldownUntil = -1;
 
-    public NoInstantBreak(IEventBus modBus) {
-        NeoForge.EVENT_BUS.register(this);
-        modBus.addListener((RegisterKeyMappingsEvent event) -> event.register(toggleKey));
+    public NoInstantBreak(FMLJavaModLoadingContext context) {
+        MinecraftForge.EVENT_BUS.register(this);
+        context.getModEventBus().addListener((RegisterKeyMappingsEvent event) -> event.register(toggleKey));
     }
 
     @SubscribeEvent
@@ -51,7 +51,10 @@ public class NoInstantBreak {
     }
 
     @SubscribeEvent
-    public void onClientTick(ClientTickEvent.Post event) {
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.level == null) {
             cooldownUntil = -1;
